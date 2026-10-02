@@ -1,228 +1,38 @@
-# ERP Next Docker(WIP)
+# erpnext-docker
 
-Self hosting ERP Next on WSL or Linux to organize ERPNext's docker compose can build it instantly.
+Linux・WSL環境でERPNextを自己管理するために、Docker Compose構成を確認・調整できます。NERP本体とは独立した配備例です。
 
-It trades simplicity for availability, may be useful for those who have tried the official instructions and want to understand more detailed the process install.
+## 利用前の確認
 
-I mainly use in Ubuntu/Debian, if on Windows, remove ```platform: linux/amd64``` from each compose file.
+実装済みの範囲、必要な依存関係、検証コマンドを以下の英語説明に併記しています。操作・配備・公開は、それぞれの権限と設定を確認してから実施してください。
 
-Refer [frappe/frappe_docker](https://github.com/frappe/frappe_docker.git) and added submodules.
+## 使い方
 
-## Services
+リポジトリ内のサンプル・スキーマ・実装を確認し、用途に必要な入力を明示して利用します。下記のGetting startedに、現行設定に対応する検証コマンドを示しています。
 
-* Traefik
-  * for server on cloud or vps
-  * localhost no proxy
-* MariaDB
-* Redis
-* Frappe/ERPNext Backend
-  * separating the background process
-* ERPNext Frontend 
-  * separated because it is related to traefik
-* ERPNext setup tools
-  * configure and create site step also separate
-  * add frequently used commands
-* Docker script
-  * one shot install tool, reset all container ...etc
-* (Option)Neko Remote web browser 
-  * this is a bit of interest. is simple rdp necessary for erp next gen?
+検証結果は実行した範囲だけを示します。未実装の機能、未設定の接続、配備環境の確認を合格扱いにしないでください。
 
-## (Pre)Install Docker
+## English
 
-Debian
+Review and adapt an ERPNext Docker Compose deployment for a self-managed Linux or WSL environment.
 
-https://docs.docker.com/engine/install/debian/
+## What you can do
 
-## (Pre)Clone this repository
+- Understand the database, Redis, backend and frontend service composition.
+- Choose routing and persistent-storage settings before deployment.
 
-```
-git clone https://github.com/neo-erp/erpnext-docker.git
-```
+## Current scope
 
-## (Pre)Copy env template
+This is an ERPNext deployment example, maintained independently of NERP. Replace example passwords and review image versions, exposure and backups before starting services.
 
-3 env files required before ERPNext setup.
-if run local, traefik.env not needed.
+Package distribution is not activated by this documentation. Use the checked-in source and the declared dependency versions; published availability must be verified separately.
 
-```
-cp traefik/traefik.env.sample traefik/traefik.env
-cp mariadb/mariadb.env.sample mariadb/mariadb.env
-cp erpnext.env.sample erpnext.env
-```
+## Getting started
 
-### traefik.env
+Start with the implementation and examples linked below. Review registered configuration and prerequisites before running a command that writes state or contacts a service.
 
-This is necessary for configuring proxy settings.
+## Documentation and source
 
-```
-TRAEFIK_DOMAIN=localhost
-EMAIL=admin@example.com
-HASHED_PASSWORD=$$apr1$$nt3s3Hgy$$7gI/Hasns4Xslvr5VhpY71
-```
+[Usage guide](docs/getting-started.md)
 
-* TRAEFIK_DOMAIN 
-  * the URL of the management screen
-* EMAIL
-  * Let'sEncrypt
-* HASHED_PASSWORD
-  * for basic authentication on the management screen
-
-default basic auth ```admin/changeit```
-
-Change the password with following command.
-
-```
-echo 'HASHED_PASSWORD='$(openssl passwd -apr1 changeit | sed 's/\$/\$\$/g') >> traefik.env
-```
-
-__Should use ```up -d --force-recreate``` after change environment variables if container started already.__
-
-
-### mariadb.env
-
-set only password
-
-```
-DB_PASSWORD=changeit
-```
-
-### erpnext.env
-
-If use the official instructions, the minimum changes need to make are:
-
-```
-DB_PASSWORD=changeit
-# Only if you use external database 
-DB_HOST=mariadb
-DB_PORT=3306
-SITES=`localhost`
-ROUTER=erpnext
-BENCH_NETWORK=erpnext
-```
-
-It is important not to be misled by comments.
-
-## Create Shared Volume
-
-Define volumes first at the expense of availability.
-
-```
-docker volume create erpnext-db
-docker volume create erpnext-redis-cache
-docker volume create erpnext-redis-queue
-docker volume create erpnext-logs
-docker volume create erpnext-sites
-```
-
-## Traefik setup(Skip if set up localhost)
-
-```
-docker compose --project-name traefik \
-  --env-file traefik/traefik.env \
-  -f traefik/compose.traefik.yaml \
-  -f traefik/override.traefik-ssl.yaml up -d 
-```
-
-## Database setup
-
-Just a run.
-
-### MariaDB
-
-```
-docker compose --project-name mariadb --env-file mariadb/mariadb.env -f mariadb/compose.mariadb-shared.yaml up -d
-```
-
-### Redis
-
-```
-docker compose --project-name redis -f redis/compose.redis.yaml up -d
-```
-
-## ERPNext
-
-Build it step by step.
-
-### Configurator
-
-DB recognition and using Frappe application define.
-keywords: app.txt common_site_config.json
-
-```
-docker compose --project-name configurator \
-  --env-file ./erpnext.env \
-  -f tools/compose.configurator.yaml up
-```
-
-This means complete set up the base of ERP Next(equals set up Frappe Platform), so we could add a new site next section.
-
-### Create Site
-
-Create a new site ERP Next.
-
-```
-docker compose --project-name create-site -f tools/compose.create-site.yaml up
-```
-
-### Run backend process
-
-Front could not start without backend.
-
-```
-docker compose --project-name erpnext \
-  --env-file ./erpnext.env \
-  -f ./compose.erpnext.yaml up -d
-```
-
-It can run without data for erp next because of the backend is only Frappe framework.
-
-### Run frontend process
-
-```
-docker compose --project-name erp-front \
-  --env-file ./erpnext.env \
-  -f ./compose.frontend.yaml up -d
-```
-
-localhost
-
-```
-http://localhost:8080
-```
-
-server host
-
-```https://[erpnext.env SITE]
-```
-
-## TIPS
-
-### Bench
-
-```
-docker compose --project-name erpnext exec backend bench --help
-```
-
-### Shutdown
-
-```
-docker compose --project-name erp-frontend down
-docker compose --project-name erpnext down
-docker compose --project-name redis down
-docker compose --project-name mariadb down
-docker compose --project-name traefik down
-```
-
-### Clean docker resource
-
-```
-docker rm $(docker ps -a -q)
-docker rmi -f $(docker images -a -q)
-docker volume rm $(docker volume ls -q)
-docker network rm $(docker network ls -q)
-docker system prune -a # remove cache
-```
-
-## Pinned upstream source
-
-Before using examples that require `frappe_docker`, run `./scripts/fetch-frappe-docker.sh`. The original submodule commit is retained in `upstream-dependency.json`. It is fetched directly from upstream into an ignored directory, with no image publication or service deployment.
+[Contributing](CONTRIBUTING.md) · [Security reporting](SECURITY.md) · [License](LICENSE) · [Attribution notices](NOTICE)
