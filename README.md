@@ -36,7 +36,7 @@ https://docs.docker.com/engine/install/debian/
 ## (Pre)Clone this repository
 
 ```
-git clone https://github.com/hatakuya/e2a.git
+git clone https://github.com/neo-erp/erpnext-docker.git
 ```
 
 ## (Pre)Copy env template
@@ -222,3 +222,7 @@ docker volume rm $(docker volume ls -q)
 docker network rm $(docker network ls -q)
 docker system prune -a # remove cache
 ```
+
+## Pinned upstream source
+
+Before using examples that require `frappe_docker`, run `./scripts/fetch-frappe-docker.sh`. The original submodule commit is retained in `upstream-dependency.json`. It is fetched directly from upstream into an ignored directory, with no image publication or service deployment.

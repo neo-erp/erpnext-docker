@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/frappe/frappe_docker.git",
+  "commit": "9a54fb709d400791700622128130b7f16e141ad7",
+  "directory": "frappe_docker",
+  "source": "Original Git submodule commit retained as an explicit immutable dependency."
+}
