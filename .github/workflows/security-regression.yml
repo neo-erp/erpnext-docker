@@ -1,0 +1,26 @@
+name: Security regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  regression:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - name: Check reset script and isolated command regressions
+        run: |
+          bash -n reset-all.sh
+          python3 tests/test_reset_all.py
+      - name: Check real Docker project isolation
+        run: |
+          docker pull nginx@sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94
+          python3 tests/test_reset_all_docker.py
+        env:
+          RESET_TEST_IMAGE: nginx@sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94
