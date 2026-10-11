@@ -36,3 +36,18 @@ Start with the implementation and examples linked below. Review registered confi
 [Usage guide](docs/getting-started.md)
 
 [Contributing](CONTRIBUTING.md) · [Security reporting](SECURITY.md) · [License](LICENSE) · [Attribution notices](NOTICE)
+
+## Project-scoped reset
+
+`bash reset-all.sh --project erpnext --dry-run` lists only Docker resources
+with the exact `com.docker.compose.project=erpnext` label. Specify additional
+`--project NAME` options only for projects you intend to remove. The default
+is dry-run; `--execute` requires typing the selected project names before any
+deletion. Cancellation or discovery failure stops the script.
+
+Shared or unlabelled images and host-wide caches are retained. Images, volumes
+and networks still in use are not forcibly removed. This operation deletes the
+selected project's data volumes; inspect the dry-run output and back up data.
+No host-wide prune is performed.
+
+Regression checks: `python3 tests/test_reset_all.py` (isolated Docker command fixture).
