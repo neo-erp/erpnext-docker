@@ -1,0 +1,81 @@
+{
+  "repository": "neo-erp/erpnext-docker",
+  "purpose": "Linux・WSL環境でERPNextを自己管理するために、Docker Compose構成を確認・調整できます。NERP本体とは独立した配備例です。 / Review and adapt an ERPNext Docker Compose deployment for a self-managed Linux or WSL environment.",
+  "responsibility_boundary": "Own only the documented product/interface scope. Reuse applicable managed common components without forcing unrelated dependencies. Separate synthetic source acceptance from actual account, data and deployment acceptance.",
+  "packages": [],
+  "schema_definitions": [],
+  "test_sources": [
+    "tests/test_reset_all.py",
+    "tests/test_reset_all_docker.py"
+  ],
+  "example_sources": [],
+  "workflow_definitions": [
+    {
+      "path": ".github/workflows/oss-policy.yml",
+      "jobs": [
+        {
+          "job": "repository-policy",
+          "condition": null,
+          "runs_on": "ubuntu-latest",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": "Verify repository policy",
+              "run": "python3 .github/oss-policy-check.py",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Verify policy regression tests",
+              "run": "cd .github && python3 -m unittest discover -s policy-tests",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Check policy types",
+              "run": "python3 -m venv \"$RUNNER_TEMP/policy-types\"\n\"$RUNNER_TEMP/policy-types/bin/pip\" install -r .github/policy/requirements.txt\n\"$RUNNER_TEMP/policy-types/bin/mypy\" --strict .github/policy .github/oss-policy-check.py .github/policy-tests\n",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "path": ".github/workflows/security-regression.yml",
+      "jobs": [
+        {
+          "job": "regression",
+          "condition": null,
+          "runs_on": "ubuntu-24.04",
+          "steps": [
+            {
+              "name": null,
+              "run": null,
+              "uses": "actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803",
+              "condition": null
+            },
+            {
+              "name": "Check reset script and isolated command regressions",
+              "run": "bash -n reset-all.sh\npython3 tests/test_reset_all.py\n",
+              "uses": null,
+              "condition": null
+            },
+            {
+              "name": "Check real Docker project isolation",
+              "run": "docker pull nginx@sha256:0985e772fb9f729e6fa0980da05fca5d9c468e870eed43071545afa9d2e27d94\npython3 tests/test_reset_all_docker.py\n",
+              "uses": null,
+              "condition": null
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "evidence_policy": "Declarations and source paths are not proof of an executed acceptance. Exact CI head and result are recorded separately. No live accounts or production acceptance is inferred."
+}
