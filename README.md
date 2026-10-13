@@ -51,3 +51,5 @@ selected project's data volumes; inspect the dry-run output and back up data.
 No host-wide prune is performed.
 
 Regression checks: `python3 tests/test_reset_all.py` (isolated Docker command fixture).
+
+[OSS responsibility and source completion](docs/oss-source-contract.md) defines the supported package boundary and required acceptance. It does not declare unexecuted source, distribution or production checks complete.
