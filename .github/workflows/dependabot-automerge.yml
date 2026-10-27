@@ -31,7 +31,7 @@ jobs:
       statuses: read
       actions: read
     steps:
-      - uses: zixcel/zixcel-repository-security/.github/actions/dependabot-merge@9adf87acebe1d68abf18f71af9cb1af8e3c96770
+      - uses: zixcel/zixcel-repository-security/.github/actions/dependabot-merge@0f7762f1abdd82f1a6f000364cb172dec57a0afc
         with:
           required-workflows: '["OSS policy","Security regression"]'
           pull-request-number: ${{ github.event.inputs.number || '' }}
